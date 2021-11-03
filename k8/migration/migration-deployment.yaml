@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-init-migrations
+  labels:
+    app: kong-init-migrations
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: kong-init-migrations
+  template:
+    metadata:
+      labels:
+        app: kong-init-migrations
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - /bin/sh
+        - -c
+        - kong migrations bootstrap
+        env:
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: /dev/stdout
+        - name: KONG_ADMIN_ERROR_LOG
+          value: /dev/stderr
+        - name: KONG_ADMIN_GUI_ACCESS_LOG
+          value: /dev/stdout
+        - name: KONG_ADMIN_GUI_ERROR_LOG
+          value: /dev/stderr
+        - name: KONG_ADMIN_LISTEN
+          value: 0.0.0.0:8001
+        - name: KONG_CLIENT_BODY_BUFFER_SIZE
+          value: 1024m
+        - name: KONG_CLIENT_MAX_BODY_SIZE
+          value: "0"
+        - name: KONG_CLUSTER_LISTEN
+          value: "off"
+        - name: KONG_DATABASE
+          value: postgres
+        - name: KONG_LUA_PACKAGE_PATH
+          value: /opt/?.lua;/opt/?/init.lua;;
+        - name: KONG_MEM_CACHE_SIZE
+          value: 1024m
+        - name: KONG_NGINX_WORKER_PROCESSES
+          value: auto
+        - name: KONG_PG_DATABASE
+          value: kong
+        - name: KONG_PG_HOST
+          value: 10.36.2.100
+        - name: KONG_PG_PASSWORD
+          value: kong
+        - name: KONG_PG_USER
+          value: kong
+        - name: KONG_PORTAL_API_ACCESS_LOG
+          value: /dev/stdout
+        - name: KONG_PORTAL_API_ERROR_LOG
+          value: /dev/stderr
+        - name: KONG_PORT_MAPS
+          value: 80:8000
+        - name: KONG_PREFIX
+          value: /kong_prefix/
+        - name: KONG_PROXY_ACCESS_LOG
+          value: /dev/stdout
+        - name: KONG_PROXY_ERROR_LOG
+          value: /dev/stderr
+        - name: KONG_PROXY_LISTEN
+          value: 0.0.0.0:8000
+        - name: KONG_STATUS_LISTEN
+          value: 0.0.0.0:8100
+        - name: KONG_STREAM_LISTEN
+          value: "off"
+        - name: KONG_NGINX_DAEMON
+          value: "off"
+        image: kong:2.4-alpine
+        imagePullPolicy: IfNotPresent
+        name: kong-init-migrations
+        resources: {}
+        securityContext: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /kong_prefix/
+          name: gateway-external-kong-prefix-dir
+        - mountPath: /tmp
+          name: gateway-external-kong-tmp
+      dnsPolicy: ClusterFirst
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: gateway-external-kong-prefix-dir
+      - emptyDir: {}
+        name: gateway-external-kong-tmp

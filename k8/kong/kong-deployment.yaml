@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong
+  labels:
+    app: kong
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong
+  template:
+    metadata:
+      labels:
+        app: kong
+    spec:
+      containers:
+      - env:
+            - name: KONG_ADMIN_ACCESS_LOG
+              value: /dev/stdout
+            - name: KONG_ADMIN_ERROR_LOG
+              value: /dev/stderr
+            - name: KONG_ADMIN_LISTEN
+              value: 0.0.0.0:8001
+            - name: KONG_CLIENT_BODY_BUFFER_SIZE
+              value: 1024m
+            - name: KONG_CLIENT_MAX_BODY_SIZE
+              value: "0"
+            - name: KONG_DATABASE
+              value: postgres
+            - name: KONG_PG_DATABASE
+              value: kong
+            - name: KONG_PG_HOST
+              value: 10.36.2.100
+            - name: KONG_PG_PASSWORD
+              value: kong
+            - name: KONG_PG_USER
+              value: kong
+            - name: KONG_PROXY_ERROR_LOG
+              value: /dev/stderr
+            - name: KONG_PROXY_LISTEN
+              value: 0.0.0.0:8000
+            - name: KONG_NGINX_HTTP_RESOLVER 
+              value: 8.8.8.8
+            - name: KONG_NGINX_HTTP_CLIENT_BODY_BUFFER_SIZE
+              value: "1m"
+            - name: KONG_NGINX_HTTP_CLIENT_MAX_BODY_SIZE
+              value: "10m"
+            - name: KONG_STATUS_LISTEN
+              value: 0.0.0.0:8100
+            - name: KONG_PLUGINS
+              value: response-transformer  
+        image: gcr.io/practice-project-2-327403/kong:v0.2
+        name: kong
+        volumeMounts:
+        - mountPath: /kong_prefix/
+          name: gateway-external-kong-prefix-dir
+        - mountPath: /tmp
+          name: gateway-external-kong-tmp
+        ports:
+        - containerPort: 8001
+          name: admin
+          protocol: TCP
+        - containerPort: 8000
+          name: proxy
+          protocol: TCP
+        - containerPort: 8100
+          name: status
+          protocol: TCP
+      volumes:
+      - emptyDir: {}
+        name: gateway-external-kong-prefix-dir
+      - emptyDir: {}
+        name: gateway-external-kong-tmp

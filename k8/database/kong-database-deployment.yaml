@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-pg-database
+  labels:
+    app: kong-pg-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong-pg-database
+  template:
+    metadata:
+      labels:
+        app: kong-pg-database
+    spec:
+      containers:
+      - env:
+            - name: POSTGRES_USER
+              value: kong
+            - name: POSTGRES_DB
+              value: kong
+            - name: POSTGRES_PASSWORD
+              value: kong    
+        image: postgres:12
+        imagePullPolicy: IfNotPresent
+        name: kong-pg-database
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgresql-data
+        ports:
+        - containerPort: 5432
+      volumes:
+      - emptyDir: {}
+        name: postgresql-data
